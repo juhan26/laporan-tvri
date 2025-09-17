@@ -11,11 +11,6 @@ Aplikasi sistem laporan siaran TVRI yang dibangun dengan Next.js, Supabase, dan 
 - **Role-based Access**: Admin dapat CRUD, Operator hanya view
 - **Real-time Data**: Integrasi dengan Supabase untuk data real-time
 
-## Demo Accounts
-
-- **Admin**: bagus / password123
-- **Operator**: alan / password123  
-- **Operator**: hafiz / password123
 
 ## Tech Stack
 
