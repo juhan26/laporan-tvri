@@ -19,7 +19,7 @@ export function Navigation() {
   const canManageUsers = userProfile?.role === "admin"
 
   return (
-    <nav className="bg-blue-700 text-white">
+    <nav className="bg-[#192d74] text-white">
       <div className="container mx-auto">
         <div className="flex space-x-1">
           {navigationItems.map((item) => (
@@ -29,8 +29,8 @@ export function Navigation() {
               variant="ghost"
               className={`flex items-center space-x-2 px-4 py-3 rounded-none transition-colors ${
                 pathname === item.href
-                  ? "bg-blue-900 border-b-2 border-white text-white"
-                  : "hover:bg-blue-600 text-white"
+                  ? "bg-[#192d74] border-b-2 border-white text-white"
+                  : "hover:bg-white text-white"
               }`}
             >
               <Link href={item.href}>
@@ -45,8 +45,8 @@ export function Navigation() {
               variant="ghost"
               className={`flex items-center space-x-2 px-4 py-3 rounded-none transition-colors ${
                 pathname === "/users"
-                  ? "bg-blue-900 border-b-2 border-white text-white"
-                  : "hover:bg-blue-600 text-white"
+                  ? "bg-[#192d74] border-b-2 border-white text-white"
+                  : "hover:bg-white text-white"
               }`}
             >
               <Link href="/users">
@@ -61,8 +61,8 @@ export function Navigation() {
               variant="ghost"
               className={`flex items-center space-x-2 px-4 py-3 rounded-none transition-colors ${
                 pathname === "/reports/new"
-                  ? "bg-blue-900 border-b-2 border-white text-white"
-                  : "hover:bg-blue-600 text-white"
+                  ? "bg-[#192d74] border-b-2 border-white text-white"
+                  : "hover:bg-white text-white"
               }`}
             >
               <Link href="/reports/new">

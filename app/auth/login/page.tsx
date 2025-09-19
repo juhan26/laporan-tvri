@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import Image from "next/image"
+import logo from "@/public/image.png"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -71,12 +73,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#203eac] to-[#192d74] flex items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="bg-blue-800 text-white p-4 rounded-lg mb-4 mx-auto w-fit">
-            <h1 className="text-2xl font-bold">TVRI</h1>
-            <p className="text-sm">Sistem Laporan Siaran</p>
+          <div className="bg-transparent text-white p-4 rounded-lg mb-4 mx-auto w-fit">
+          <Image src={logo} alt="logo" width={75} height={75}></Image>
           </div>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>Masuk ke sistem laporan siaran TVRI</CardDescription>
@@ -120,18 +121,18 @@ export default function LoginPage() {
                 "Login"
               )}
             </Button>
-            <Button type="button" variant="outline" className="w-full bg-transparent" onClick={testConnection}>
+            {/* <Button type="button" variant="outline" className="w-full bg-transparent" onClick={testConnection}>
               Test Database Connection
-            </Button>
+            </Button> */}
           </form>
-          <div className="mt-6 text-xs text-muted-foreground">
+          {/* <div className="mt-6 text-xs text-muted-foreground">
             <p className="font-semibold mb-2">Demo accounts:</p>
             <div className="space-y-1">
               <p>• Admin: bagus@tvri.com / password123</p>
               <p>• Operator: alan@tvri.com / password123</p>
               <p>• Operator: hafiz@tvri.com / password123</p>
             </div>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>

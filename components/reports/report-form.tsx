@@ -22,7 +22,7 @@ interface ReportFormProps {
   isEditing?: boolean
 }
 
-const PETUGAS_OPTIONS = ["Bagus", "Alan", "Hafiz", "Dedi", "Sari", "Budi"]
+const PETUGAS_OPTIONS = ["Bagus", "Alan", "Hafiz"];
 
 export function ReportForm({ initialData, isEditing = false }: ReportFormProps) {
   const { user } = useAuth()
