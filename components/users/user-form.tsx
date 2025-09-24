@@ -9,12 +9,14 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createBrowserClient } from "@/lib/supabase/client"
 import { Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface UserFormProps {
   onSuccess: () => void
 }
 
 export function UserForm({ onSuccess }: UserFormProps) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     nik: "",
@@ -86,6 +88,8 @@ export function UserForm({ onSuccess }: UserFormProps) {
         password: "",
         role: "operator",
       })
+
+      router.push('/dashboard');
     } catch (error: any) {
       console.error("Error creating user:", error)
       setError(error.message || "Terjadi kesalahan saat membuat user")

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/components/auth-provider"
@@ -32,13 +32,13 @@ interface FormData {
   keterangan: string
 }
 
-const PETUGAS_OPTIONS = ["Bagus", "Alan", "Hafiz", "Dedi", "Sari", "Budi"]
-
 export function ReportForm({ initialData, isEditing = false }: ReportFormProps) {
   const { user } = useAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [petugasOptions, setPetugasOptions] = useState<string[]>([])
 
   const [formData, setFormData] = useState<FormData>({
     tanggal: initialData?.tanggal || new Date().toISOString().split('T')[0],
@@ -53,6 +53,25 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
     keterangan: initialData?.keterangan || "",
   })
 
+  // Fetch semua user dari Supabase
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("users")
+        .select("name")
+
+      if (error) {
+        console.error("Gagal mengambil user:", error)
+      } else {
+        const names = data.map((user: any) => user.name)
+        setPetugasOptions(names)
+      }
+    }
+
+    fetchUsers()
+  }, [])
+
   const handlePetugasChange = (petugasName: string, checked: boolean) => {
     if (checked && formData.petugas.length >= 2) {
       setError("Maksimal 2 petugas dapat dipilih")
@@ -61,9 +80,9 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
 
     setFormData((prev) => ({
       ...prev,
-      petugas: checked 
-        ? [...prev.petugas, petugasName] 
-        : prev.petugas.filter((p: string) => p !== petugasName), //
+      petugas: checked
+        ? [...prev.petugas, petugasName]
+        : prev.petugas.filter((p) => p !== petugasName),
     }))
     setError(null)
   }
@@ -73,10 +92,7 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
     setIsLoading(true)
     setError(null)
 
-    console.log("Form data:", formData)
-    console.log("User:", user)
-
-    // Validation
+    // Validasi
     if (formData.petugas.length === 0) {
       setError("Pilih minimal 1 petugas")
       setIsLoading(false)
@@ -91,7 +107,7 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
 
     try {
       const supabase = createClient()
-      
+
       if (!user) {
         throw new Error("User tidak ditemukan. Silakan login ulang.")
       }
@@ -112,8 +128,6 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
         updated_at: new Date().toISOString(),
       }
 
-      console.log("Data yang akan dikirim:", reportData)
-
       let result
       if (isEditing && initialData) {
         result = await supabase
@@ -128,18 +142,15 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
           .select()
       }
 
-      console.log("Supabase result:", result)
-
       if (result.error) {
         throw new Error(result.error.message)
       }
 
-      // Success - redirect to reports page
+      // Redirect ke halaman laporan
       router.push("/reports")
       router.refresh()
 
     } catch (error: any) {
-      console.error("Error details:", error)
       setError(error.message || "Terjadi kesalahan saat menyimpan laporan")
     } finally {
       setIsLoading(false)
@@ -241,9 +252,9 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
           </div>
 
           <div className="space-y-3">
-            <Label>Petugas (Pilih 1-2 petugas) *</Label>
+            <Label>Petugas (Pilih 1–2 petugas) *</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {PETUGAS_OPTIONS.map((petugas) => (
+              {petugasOptions.map((petugas) => (
                 <div key={petugas} className="flex items-center space-x-2 bg-gray-50 p-3 rounded">
                   <Checkbox
                     id={petugas}
