@@ -49,7 +49,6 @@ export function Header() {
             Halo, {userProfile?.name} ({userProfile?.role})
           </span>
 
-          {/* Button Hard Refresh */}
           <Button
             onClick={handleHardRefresh}
             variant="secondary"
@@ -60,7 +59,6 @@ export function Header() {
             Refresh
           </Button>
 
-          {/* Button Logout */}
           <Button
             onClick={handleLogout}
             variant="secondary"

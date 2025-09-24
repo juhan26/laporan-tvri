@@ -6,11 +6,12 @@ import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/components/auth-provider"
 import { Suspense } from "react"
 import "./globals.css"
+import { GlobalLoading } from "@/components/users/global-loading"
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.app",
+  title: "Laporan Siaran TVRI",
+  description: "",
+  generator: "",
 }
 
 export default function RootLayout({
@@ -22,7 +23,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <Suspense fallback={<div>Loading...</div>}>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>{children}
+            <GlobalLoading />
+          </AuthProvider>
         </Suspense>
         <Analytics />
       </body>

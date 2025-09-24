@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -12,17 +11,28 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
-import type { BroadcastReport, ReportForm as ReportFormType } from "@/lib/types"
 
 interface ReportFormProps {
-  initialData?: BroadcastReport
+  initialData?: any
   isEditing?: boolean
 }
 
-const PETUGAS_OPTIONS = ["Bagus", "Alan", "Hafiz"];
+interface FormData {
+  tanggal: string
+  jam_mulai: string
+  jam_selesai: string
+  program: string
+  kualitas_video: string
+  kualitas_audio: string
+  petugas: string[]
+  kendala: string
+  penanganan: string
+  keterangan: string
+}
+
+const PETUGAS_OPTIONS = ["Bagus", "Alan", "Hafiz", "Dedi", "Sari", "Budi"]
 
 export function ReportForm({ initialData, isEditing = false }: ReportFormProps) {
   const { user } = useAuth()
@@ -30,13 +40,13 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [formData, setFormData] = useState<ReportFormType>({
-    tanggal: initialData?.tanggal || "",
+  const [formData, setFormData] = useState<FormData>({
+    tanggal: initialData?.tanggal || new Date().toISOString().split('T')[0],
     jam_mulai: initialData?.jam_mulai || "",
     jam_selesai: initialData?.jam_selesai || "",
     program: initialData?.program || "",
-    kualitas_video: initialData?.kualitas_video || "Baik",
-    kualitas_audio: initialData?.kualitas_audio || "Baik",
+    kualitas_video: initialData?.kualitas_video || "",
+    kualitas_audio: initialData?.kualitas_audio || "",
     petugas: initialData?.petugas || [],
     kendala: initialData?.kendala || "",
     penanganan: initialData?.penanganan || "",
@@ -51,7 +61,9 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
 
     setFormData((prev) => ({
       ...prev,
-      petugas: checked ? [...prev.petugas, petugasName] : prev.petugas.filter((p) => p !== petugasName),
+      petugas: checked 
+        ? [...prev.petugas, petugasName] 
+        : prev.petugas.filter((p: string) => p !== petugasName), //
     }))
     setError(null)
   }
@@ -61,9 +73,12 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
     setIsLoading(true)
     setError(null)
 
+    console.log("Form data:", formData)
+    console.log("User:", user)
+
     // Validation
-    if (formData.petugas.length === 0 || formData.petugas.length > 2) {
-      setError("Pilih minimal 1 dan maksimal 2 petugas")
+    if (formData.petugas.length === 0) {
+      setError("Pilih minimal 1 petugas")
       setIsLoading(false)
       return
     }
@@ -76,37 +91,73 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
 
     try {
       const supabase = createClient()
+      
+      if (!user) {
+        throw new Error("User tidak ditemukan. Silakan login ulang.")
+      }
 
       const reportData = {
         tanggal: formData.tanggal,
         jam_mulai: formData.jam_mulai,
         jam_selesai: formData.jam_selesai,
-        program: formData.program,
-        kualitas_video: formData.kualitas_video,
-        kualitas_audio: formData.kualitas_audio,
+        program: formData.program.trim(),
+        kualitas_video: formData.kualitas_video.trim(),
+        kualitas_audio: formData.kualitas_audio.trim(),
         petugas: formData.petugas,
-        kendala: formData.kendala,
-        penanganan: formData.penanganan,
-        keterangan: formData.keterangan,
-        created_by: user?.id,
+        kendala: formData.kendala.trim(),
+        penanganan: formData.penanganan.trim(),
+        keterangan: formData.keterangan.trim(),
+        created_by: user.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
 
+      console.log("Data yang akan dikirim:", reportData)
+
+      let result
       if (isEditing && initialData) {
-        const { error } = await supabase.from("broadcast_reports").update(reportData).eq("id", initialData.id)
-
-        if (error) throw error
+        result = await supabase
+          .from("broadcast_reports")
+          .update(reportData)
+          .eq("id", initialData.id)
+          .select()
       } else {
-        const { error } = await supabase.from("broadcast_reports").insert([reportData])
-
-        if (error) throw error
+        result = await supabase
+          .from("broadcast_reports")
+          .insert([reportData])
+          .select()
       }
 
+      console.log("Supabase result:", result)
+
+      if (result.error) {
+        throw new Error(result.error.message)
+      }
+
+      // Success - redirect to reports page
       router.push("/reports")
+      router.refresh()
+
     } catch (error: any) {
-      setError(error.message)
+      console.error("Error details:", error)
+      setError(error.message || "Terjadi kesalahan saat menyimpan laporan")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleTextareaChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }))
   }
 
   return (
@@ -125,7 +176,7 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
                 id="tanggal"
                 type="date"
                 value={formData.tanggal}
-                onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
+                onChange={(e) => handleInputChange("tanggal", e.target.value)}
                 required
               />
             </div>
@@ -137,7 +188,7 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
                 type="text"
                 placeholder="Nama program siaran"
                 value={formData.program}
-                onChange={(e) => setFormData({ ...formData, program: e.target.value })}
+                onChange={(e) => handleInputChange("program", e.target.value)}
                 required
               />
             </div>
@@ -148,7 +199,7 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
                 id="jam_mulai"
                 type="time"
                 value={formData.jam_mulai}
-                onChange={(e) => setFormData({ ...formData, jam_mulai: e.target.value })}
+                onChange={(e) => handleInputChange("jam_mulai", e.target.value)}
                 required
               />
             </div>
@@ -159,55 +210,33 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
                 id="jam_selesai"
                 type="time"
                 value={formData.jam_selesai}
-                onChange={(e) => setFormData({ ...formData, jam_selesai: e.target.value })}
+                onChange={(e) => handleInputChange("jam_selesai", e.target.value)}
                 required
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <Label>Kualitas Video *</Label>
-              <RadioGroup
+            <div className="space-y-2">
+              <Label htmlFor="kualitas_video">Kualitas Video</Label>
+              <Textarea
+                id="kualitas_video"
+                placeholder="Deskripsikan kualitas video..."
                 value={formData.kualitas_video}
-                onValueChange={(value: "Baik" | "Tidak Baik") => setFormData({ ...formData, kualitas_video: value })}
-                className="flex space-x-6"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Baik" id="video-baik" />
-                  <Label htmlFor="video-baik" className="text-green-600 font-semibold">
-                    Baik
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Tidak Baik" id="video-tidak-baik" />
-                  <Label htmlFor="video-tidak-baik" className="text-red-600 font-semibold">
-                    Tidak Baik
-                  </Label>
-                </div>
-              </RadioGroup>
+                onChange={handleTextareaChange("kualitas_video")}
+                rows={3}
+              />
             </div>
 
-            <div className="space-y-3">
-              <Label>Kualitas Audio *</Label>
-              <RadioGroup
+            <div className="space-y-2">
+              <Label htmlFor="kualitas_audio">Kualitas Audio</Label>
+              <Textarea
+                id="kualitas_audio"
+                placeholder="Deskripsikan kualitas audio..."
                 value={formData.kualitas_audio}
-                onValueChange={(value: "Baik" | "Tidak Baik") => setFormData({ ...formData, kualitas_audio: value })}
-                className="flex space-x-6"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Baik" id="audio-baik" />
-                  <Label htmlFor="audio-baik" className="text-green-600 font-semibold">
-                    Baik
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Tidak Baik" id="audio-tidak-baik" />
-                  <Label htmlFor="audio-tidak-baik" className="text-red-600 font-semibold">
-                    Tidak Baik
-                  </Label>
-                </div>
-              </RadioGroup>
+                onChange={handleTextareaChange("kualitas_audio")}
+                rows={3}
+              />
             </div>
           </div>
 
@@ -234,7 +263,7 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
               id="kendala"
               placeholder="Deskripsikan kendala teknis yang terjadi..."
               value={formData.kendala}
-              onChange={(e) => setFormData({ ...formData, kendala: e.target.value })}
+              onChange={handleTextareaChange("kendala")}
               rows={3}
             />
           </div>
@@ -245,7 +274,7 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
               id="penanganan"
               placeholder="Langkah penanganan yang dilakukan..."
               value={formData.penanganan}
-              onChange={(e) => setFormData({ ...formData, penanganan: e.target.value })}
+              onChange={handleTextareaChange("penanganan")}
               rows={3}
             />
           </div>
@@ -256,7 +285,7 @@ export function ReportForm({ initialData, isEditing = false }: ReportFormProps) 
               id="keterangan"
               placeholder="Keterangan tambahan..."
               value={formData.keterangan}
-              onChange={(e) => setFormData({ ...formData, keterangan: e.target.value })}
+              onChange={handleTextareaChange("keterangan")}
               rows={3}
             />
           </div>

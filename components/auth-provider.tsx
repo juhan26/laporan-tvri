@@ -36,10 +36,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (session?.user) {
           // Fetch user profile
-          const { data: profile, error } = await supabase.from("users").select("*").eq("id", session.user.id).single()
+          const { data: profile, error } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle()
+
 
           if (error) {
             console.error("Error fetching user profile:", error)
+          }
+
+          if (!profile) {
+            console.warn("⚠️ User not found in users table")
             await supabase.auth.signOut()
             router.push("/auth/login")
             return
@@ -82,7 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         try {
           // Fetch user profile
-          const { data: profile, error } = await supabase.from("users").select("*").eq("id", session.user.id).single()
+          const { data: profile, error } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle()
+
 
           if (error) {
             console.error("Error fetching user profile:", error)
@@ -92,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (!profile || (profile.role !== "admin" && profile.role !== "operator")) {
             console.error("Invalid user role:", profile?.role)
-            await supabase.auth.signOut()
+            // await supabase.auth.signOut()
             return
           }
 
@@ -110,6 +124,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe()
   }, [supabase, router])
+
+  // auth-provider.tsx (additional function)
+  const ensureUserProfile = async (user: any) => {
+    if (!user) return null;
+
+    // Cek apakah user sudah ada di tabel users
+    const { data: existingProfile, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !existingProfile) {
+      // Jika belum ada, buat profile baru
+      const { data: newProfile, error: createError } = await supabase
+        .from('users')
+        .insert({
+          id: user.id,
+          name: user.user_metadata?.name || user.email,
+          username: user.user_metadata?.username || user.email,
+          email: user.email,
+          role: user.user_metadata?.role || 'operator',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating user profile:', createError);
+        return null;
+      }
+
+      return newProfile;
+    }
+
+    return existingProfile;
+  };
 
   const signOut = async () => {
     try {

@@ -45,12 +45,12 @@ export default function SignUpPage() {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
-          data: {
-            name: formData.name,
-            username: formData.username,
-            role: formData.role,
-          },
+          emailRedirectTo: "http://localhost:3000/auth/callback"
+          // data: {
+          //   name: formData.name,
+          //   username: formData.username,
+          //   role: formData.role,
+          // },
         },
       })
 

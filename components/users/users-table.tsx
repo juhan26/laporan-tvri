@@ -31,7 +31,7 @@ export function UsersTable({ onAddUser }: UsersTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(true)
   const { userProfile } = useAuth()
-  const supabase = createBrowserClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   useEffect(() => {
     fetchUsers()
@@ -42,7 +42,7 @@ export function UsersTable({ onAddUser }: UsersTableProps) {
       (user) =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        // user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.role.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     setFilteredUsers(filtered)
@@ -113,7 +113,7 @@ export function UsersTable({ onAddUser }: UsersTableProps) {
               <TableHead>No</TableHead>
               <TableHead>Nama</TableHead>
               <TableHead>Username</TableHead>
-              <TableHead>Email</TableHead>
+              {/* <TableHead>Email</TableHead> */}
               <TableHead>Role</TableHead>
               <TableHead>Tanggal Dibuat</TableHead>
               <TableHead>Aksi</TableHead>
@@ -125,7 +125,7 @@ export function UsersTable({ onAddUser }: UsersTableProps) {
                 <TableCell>{index + 1}</TableCell>
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.username}</TableCell>
-                <TableCell>{user.email || "-"}</TableCell>
+                {/* <TableCell>{user.email || "-"}</TableCell> */}
                 <TableCell>
                   <Badge variant={getRoleBadgeVariant(user.role)}>{user.role.toUpperCase()}</Badge>
                 </TableCell>
