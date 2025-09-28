@@ -104,7 +104,7 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
     <div className="space-y-4">
       {/* Search and Filter Controls */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-2xl font-bold text-blue-800">Laporan TD Penyiaran</h2>
+        <h2 className="text-2xl font-bold text-[#192d74]">Laporan TD Penyiaran</h2>
 
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 border">
@@ -145,12 +145,12 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
       {/* Info Filter */}
       {filterMonth && (
         <div className="bg-blue-50 p-3 rounded-lg">
-          <p className="text-blue-800 text-sm">
+          <p className="text-[#192d74] text-sm">
             Menampilkan laporan untuk: <strong>{getMonthName(filterMonth)}</strong>
             <Button
               variant="ghost"
               size="sm"
-              className="ml-2 text-blue-600 hover:text-blue-800"
+              className="ml-2 text-[#192d74] hover:text-blue-800"
               onClick={() => setFilterMonth("")}
             >
               Hapus Filter
@@ -164,34 +164,34 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-blue-800 hover:bg-blue-800">
-                <TableHead className="text-white text-center border-r border-blue-700" rowSpan={2}>
+              <TableRow className="bg-[#192d74] hover:bg-blue-800">
+                <TableHead className="text-white text-center border-r border-white" rowSpan={2}>
                   NO
                 </TableHead>
-                <TableHead className="text-white text-center border-r border-blue-700" rowSpan={2}>
+                <TableHead className="text-white text-center border-r border-white" rowSpan={2}>
                   Tanggal/Hari
                 </TableHead>
-                <TableHead className="text-white text-center border-r border-blue-700" rowSpan={2}>
+                <TableHead className="text-white text-center border-r border-white" rowSpan={2}>
                   Petugas TD
                 </TableHead>
-                <TableHead className="text-white text-center border-r border-blue-700" colSpan={2}>
+                <TableHead className="text-white text-center border-r border-white" colSpan={2}>
                   Kualitas Siaran
                 </TableHead>
-                <TableHead className="text-white text-center border-r border-blue-700" colSpan={2}>
+                <TableHead className="text-white text-center border-r border-white" colSpan={2}>
                   Kendala siaran
                 </TableHead>
-                <TableHead className="text-white text-center border-r border-blue-700" rowSpan={2}>
+                <TableHead className="text-white text-center border-r border-white" rowSpan={2}>
                   Penanganan
                 </TableHead>
                 <TableHead className="text-white text-center" rowSpan={2}>
                   Keterangan
                 </TableHead>
               </TableRow>
-              <TableRow className="bg-blue-800 hover:bg-blue-800">
-                <TableHead className="text-white text-center border-r border-blue-700">Video</TableHead>
-                <TableHead className="text-white text-center border-r border-blue-700">Audio</TableHead>
-                <TableHead className="text-white text-center border-r border-blue-700">Jam</TableHead>
-                <TableHead className="text-white text-center border-r border-blue-700">Masalah</TableHead>
+              <TableRow className="bg-[#192d74] hover:bg-blue-800">
+                <TableHead className="text-white text-center border-r border-white">Video</TableHead>
+                <TableHead className="text-white text-center border-r border-white">Audio</TableHead>
+                <TableHead className="text-white text-center border-r border-white">Jam</TableHead>
+                <TableHead className="text-white text-center border-r border-white">Masalah</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
