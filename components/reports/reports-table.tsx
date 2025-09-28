@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Filter, Download } from "lucide-react"
+import { Search, Filter, Download, Calendar } from "lucide-react"
 import { exportToExcel, exportToPDF, getKepalaData } from "@/lib/export-utils"
 import type { BroadcastReport } from "@/lib/types"
 
@@ -20,7 +20,7 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
   const { userProfile } = useAuth()
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterDate, setFilterDate] = useState("")
+  const [filterMonth, setFilterMonth] = useState("")
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
   const canEdit = userProfile?.role === "admin"
@@ -30,9 +30,19 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
     const matchesSearch =
       report.program.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (report.kendala && report.kendala.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesDate = !filterDate || report.tanggal === filterDate
-    return matchesSearch && matchesDate
+
+    const matchesMonth = !filterMonth ||
+      report.tanggal.startsWith(filterMonth)
+
+    return matchesSearch && matchesMonth
   })
+
+  const getMonthName = (monthString: string) => {
+    if (!monthString) return "Semua Bulan"
+    const [year, month] = monthString.split('-')
+    const date = new Date(parseInt(year), parseInt(month) - 1)
+    return date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+  }
 
   const handleDelete = async (id: string) => {
     setIsDeleting(id)
@@ -50,18 +60,28 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
     }
   }
 
-  // PERBAIKAN: Fungsi export yang benar
+  // Fungsi export dengan filter bulan
+  // Tambahkan fungsi handleExportToPDF yang diperbaiki
   const handleExportToPDF = () => {
     try {
+      // Pastikan ada data yang akan di-export
+      if (filteredReports.length === 0) {
+        alert("Tidak ada data untuk diexport. Silakan sesuaikan filter Anda.")
+        return
+      }
+
+      console.log("Memulai export PDF dengan data:", filteredReports.length)
+
       const kepalaData = getKepalaData()
       exportToPDF(filteredReports, {
         currentUser: userProfile || undefined,
         kepalaName: kepalaData.name,
-        kepalaNIP: kepalaData.nip
+        kepalaNIP: kepalaData.nip,
+        monthFilter: filterMonth
       })
     } catch (error) {
       console.error("Error exporting to PDF:", error)
-      alert("Terjadi kesalahan saat mengekspor ke PDF")
+      alert("Terjadi kesalahan saat mengekspor ke PDF. Pastikan data valid.")
     }
   }
 
@@ -71,7 +91,8 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
       exportToExcel(filteredReports, {
         currentUser: userProfile || undefined,
         kepalaName: kepalaData.name,
-        kepalaNIP: kepalaData.nip
+        kepalaNIP: kepalaData.nip,
+        monthFilter: filterMonth
       })
     } catch (error) {
       console.error("Error exporting to Excel:", error)
@@ -98,17 +119,16 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
           </div>
 
           <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 border">
-            <Filter className="h-4 w-4 text-gray-500" />
+            <Calendar className="h-4 w-4 text-gray-500" />
             <Input
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
+              type="month"
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
               className="border-none shadow-none focus-visible:ring-0"
             />
           </div>
 
           <div className="flex space-x-2">
-            {/* PERBAIKAN: Gunakan fungsi yang benar */}
             <Button onClick={handleExportToExcel} className="bg-green-600 hover:bg-green-700">
               <Download className="h-4 w-4 mr-2" />
               Excel
@@ -121,6 +141,23 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
           </div>
         </div>
       </div>
+
+      {/* Info Filter */}
+      {filterMonth && (
+        <div className="bg-blue-50 p-3 rounded-lg">
+          <p className="text-blue-800 text-sm">
+            Menampilkan laporan untuk: <strong>{getMonthName(filterMonth)}</strong>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-2 text-blue-600 hover:text-blue-800"
+              onClick={() => setFilterMonth("")}
+            >
+              Hapus Filter
+            </Button>
+          </p>
+        </div>
+      )}
 
       {/* Reports Table */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -184,7 +221,7 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
           </Table>
           {filteredReports.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              {searchTerm || filterDate ? "Tidak ada laporan yang sesuai dengan filter" : "Belum ada laporan"}
+              {searchTerm || filterMonth ? "Tidak ada laporan yang sesuai dengan filter" : "Belum ada laporan"}
             </div>
           )}
         </div>

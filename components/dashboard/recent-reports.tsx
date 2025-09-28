@@ -23,7 +23,8 @@ export function RecentReports({ reports }: RecentReportsProps) {
               <tr className="bg-blue-50">
                 <th className="p-3 text-left text-blue-800">Tanggal</th>
                 <th className="p-3 text-left text-blue-800">Program</th>
-                <th className="p-3 text-left text-blue-800">Kualitas</th>
+                <th className="p-3 text-left text-blue-800">Kualitas Video</th>
+                <th className="p-3 text-left text-blue-800">Kualitas Audio</th>
                 <th className="p-3 text-left text-blue-800">Kendala</th>
               </tr>
             </thead>
@@ -32,11 +33,8 @@ export function RecentReports({ reports }: RecentReportsProps) {
                 <tr key={report.id} className="border-b hover:bg-gray-50">
                   <td className="p-3">{new Date(report.tanggal).toLocaleDateString("id-ID")}</td>
                   <td className="p-3">{report.program}</td>
-                  <td className="p-3">
-                    <Badge variant={report.kualitas_siaran === "Baik" ? "default" : "destructive"}>
-                      {report.kualitas_siaran}
-                    </Badge>
-                  </td>
+                  <td className="p-3">{report.kualitas_video}</td>
+                  <td className="p-3">{report.kualitas_audio}</td>
                   <td className="p-3">{report.kendala || "-"}</td>
                 </tr>
               ))}
