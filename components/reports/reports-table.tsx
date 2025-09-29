@@ -21,8 +21,9 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterMonth, setFilterMonth] = useState("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
-
   const canEdit = userProfile?.role === "admin"
   const canDelete = userProfile?.role === "admin"
 
@@ -31,11 +32,13 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
       report.program.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (report.kendala && report.kendala.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    const matchesMonth = !filterMonth ||
-      report.tanggal.startsWith(filterMonth)
+    const reportDate = new Date(report.tanggal)
+    const matchesStart = !startDate || reportDate >= new Date(startDate)
+    const matchesEnd = !endDate || reportDate <= new Date(endDate)
 
-    return matchesSearch && matchesMonth
+    return matchesSearch && matchesStart && matchesEnd
   })
+
 
   const getMonthName = (monthString: string) => {
     if (!monthString) return "Semua Bulan"
@@ -77,7 +80,7 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
         currentUser: userProfile || undefined,
         kepalaName: kepalaData.name,
         kepalaNIP: kepalaData.nip,
-        monthFilter: filterMonth
+        dateRange: startDate && endDate ? `${startDate} s/d ${endDate}` : "",
       })
     } catch (error) {
       console.error("Error exporting to PDF:", error)
@@ -92,7 +95,7 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
         currentUser: userProfile || undefined,
         kepalaName: kepalaData.name,
         kepalaNIP: kepalaData.nip,
-        monthFilter: filterMonth
+        dateRange: startDate && endDate ? `${startDate} s/d ${endDate}` : "",
       })
     } catch (error) {
       console.error("Error exporting to Excel:", error)
@@ -118,12 +121,20 @@ export function ReportsTable({ reports, onReportsChange }: ReportsTableProps) {
             />
           </div>
 
+          {/* Date Range */}
           <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 border">
             <Calendar className="h-4 w-4 text-gray-500" />
             <Input
-              type="month"
-              value={filterMonth}
-              onChange={(e) => setFilterMonth(e.target.value)}
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border-none shadow-none focus-visible:ring-0"
+            />
+            <span>-</span>
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
               className="border-none shadow-none focus-visible:ring-0"
             />
           </div>
