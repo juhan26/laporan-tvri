@@ -18,7 +18,6 @@ export const exportToExcel = (reports: any[], options: ExportOptions) => {
 
   // Judul
   data.push(["LAPORAN TD PENYIARAN"])
-  data.push([options.dateRange ? `Periode: ${options.dateRange}` : "Semua Data"]) // 🔹 tampilkan periode
   data.push([])
 
   // Header utama + sub-header
@@ -34,7 +33,14 @@ export const exportToExcel = (reports: any[], options: ExportOptions) => {
     "",
     "Keterangan",
   ]
-  const header2 = ["", "", "", "Video", "Audio", "", "", "Masalah", "Penanganan", ""]
+  const header2 = [
+    "", "", "",
+    "Video", "Audio",
+    "",
+    "",
+    "Masalah", "Penanganan",
+    "",
+  ]
 
   data.push(header1)
   data.push(header2)
@@ -60,13 +66,175 @@ export const exportToExcel = (reports: any[], options: ExportOptions) => {
     ])
   })
 
-  // Buat worksheet
-  const ws = XLSX.utils.aoa_to_sheet(data)
+  // Tambahkan 3 baris kosong antara tabel dan tanda tangan
+  data.push([])
+  data.push([])
+  data.push([])
 
-  // Tambah ke workbook
+const ttdStartRow = data.length
+
+// Bagian tanda tangan dengan jarak yang lebih besar
+data.push([
+  "Ketua Tim Produksi dan Penyiaran,", "", "", "", "",
+  `Mataram, ${new Date().toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  })}`, "", "", "", "",
+])
+
+data.push([
+  "", "", "", "", "",
+  "Pengarah Teknik,", "", "", "", "",
+])
+
+// Tambahkan 4 baris kosong untuk ruang tanda tangan
+data.push(["", "", "", "", "", "", "", "", "", ""])
+data.push(["", "", "", "", "", "", "", "", "", ""])
+data.push(["", "", "", "", "", "", "", "", "", ""])
+data.push(["", "", "", "", "", "", "", "", "", ""])
+
+data.push([
+  options.kepalaName || "________________", "", "", "", "",
+  `${options?.currentUser?.name || "________________" }`, "", "", "", "",
+])
+
+data.push([
+  `NIP. ${options.kepalaNIP || "________________"}`, "", "", "", "",
+  `NIP. ${options?.currentUser?.nip || "________________" }`, "", "", "", "",
+])
+
+const ws = XLSX.utils.aoa_to_sheet(data)
+
+// Update merge cells untuk layout baru dengan baris tambahan
+ws["!merges"] = [
+  { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } }, // Judul
+
+  { s: { r: 2, c: 3 }, e: { r: 2, c: 4 } }, // Kualitas Siaran
+  { s: { r: 2, c: 7 }, e: { r: 2, c: 8 } }, // Kendala Siaran
+
+  { s: { r: 2, c: 0 }, e: { r: 3, c: 0 } }, // NO
+  { s: { r: 2, c: 1 }, e: { r: 3, c: 1 } }, // Tanggal
+  { s: { r: 2, c: 2 }, e: { r: 3, c: 2 } }, // Petugas
+  { s: { r: 2, c: 5 }, e: { r: 3, c: 5 } }, // Jam Siaran
+  { s: { r: 2, c: 6 }, e: { r: 3, c: 6 } }, // Program
+  { s: { r: 2, c: 9 }, e: { r: 3, c: 9 } }, // Keterangan
+
+  // tanda tangan (merge kiri-kanan biar rapi)
+  { s: { r: ttdStartRow, c: 0 }, e: { r: ttdStartRow, c: 4 } },
+  { s: { r: ttdStartRow, c: 5 }, e: { r: ttdStartRow, c: 9 } },
+  { s: { r: ttdStartRow + 1, c: 0 }, e: { r: ttdStartRow + 1, c: 4 } },
+  { s: { r: ttdStartRow + 1, c: 5 }, e: { r: ttdStartRow + 1, c: 9 } },
+  { s: { r: ttdStartRow + 6, c: 0 }, e: { r: ttdStartRow + 6, c: 4 } },
+  { s: { r: ttdStartRow + 6, c: 5 }, e: { r: ttdStartRow + 6, c: 9 } },
+  { s: { r: ttdStartRow + 7, c: 0 }, e: { r: ttdStartRow + 7, c: 4 } },
+  { s: { r: ttdStartRow + 7, c: 5 }, e: { r: ttdStartRow + 7, c: 9 } },
+]
+
+  // Lebar kolom
+  ws["!cols"] = [
+    { wch: 5 },
+    { wch: 20 },
+    { wch: 18 },
+    { wch: 10 },
+    { wch: 10 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 22 },
+  ]
+
+  // Style judul
+  const titleCell = ws["A1"]
+  if (titleCell) {
+    titleCell.s = {
+      font: { bold: true, size: 14 },
+      alignment: { horizontal: "center", vertical: "center" },
+    }
+  }
+
+  // Style header
+  for (let R = 2; R <= 3; R++) {
+    for (let C = 0; C <= 9; C++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })]
+      if (cell) {
+        cell.s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          fill: { fgColor: { rgb: "192D74" } },
+          alignment: { horizontal: "center", vertical: "center", wrapText: true },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } },
+          },
+        }
+      }
+    }
+  }
+
+  // Style data
+  const dataStartRow = 4
+  for (let R = dataStartRow; R < dataStartRow + reports.length; R++) {
+    for (let C = 0; C <= 9; C++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })]
+      if (cell) {
+        cell.s = {
+          alignment: {
+            horizontal: [7, 8, 9].includes(C) ? "left" : "center",
+            vertical: "center",
+            wrapText: true,
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "D3D3D3" } },
+            bottom: { style: "thin", color: { rgb: "D3D3D3" } },
+            left: { style: "thin", color: { rgb: "D3D3D3" } },
+            right: { style: "thin", color: { rgb: "D3D3D3" } },
+          },
+        }
+      }
+    }
+  }
+
+  // Style tanda tangan - update untuk baris yang baru
+  for (let R = ttdStartRow; R <= ttdStartRow + 1; R++) {
+    const leftCell = ws[XLSX.utils.encode_cell({ r: R, c: 0 })]
+    const rightCell = ws[XLSX.utils.encode_cell({ r: R, c: 5 })]
+    if (leftCell) {
+      leftCell.s = {
+        alignment: { horizontal: "center", vertical: "top", wrapText: true },
+        font: { bold: R === ttdStartRow },
+      }
+    }
+    if (rightCell) {
+      rightCell.s = {
+        alignment: { horizontal: "center", vertical: "top", wrapText: true },
+        font: { bold: R === ttdStartRow || R === ttdStartRow + 1 },
+      }
+    }
+  }
+
+  // Style untuk nama dan NIP
+  for (let R = ttdStartRow + 6; R <= ttdStartRow + 7; R++) {
+    const leftCell = ws[XLSX.utils.encode_cell({ r: R, c: 0 })]
+    const rightCell = ws[XLSX.utils.encode_cell({ r: R, c: 5 })]
+    if (leftCell) {
+      leftCell.s = {
+        alignment: { horizontal: "center", vertical: "top", wrapText: true },
+        font: { bold: false },
+      }
+    }
+    if (rightCell) {
+      rightCell.s = {
+        alignment: { horizontal: "center", vertical: "top", wrapText: true },
+        font: { bold: false },
+      }
+    }
+  }
+
+  // Simpan file
   XLSX.utils.book_append_sheet(wb, ws, "Laporan TD")
-
-  // Save
   XLSX.writeFile(wb, `Laporan_TD_${options.dateRange || "Semua"}.xlsx`)
 }
 
@@ -82,7 +250,7 @@ export function exportToPDF(
     currentUser = null,
     kepalaName = "________________",
     kepalaNIP = "________________",
-    dateRange,   // 🔹 pakai dateRange
+    dateRange,
   } = options
 
   const doc = new jsPDF("landscape", "mm", "a4")
@@ -100,7 +268,11 @@ export function exportToPDF(
   // Periode & Tanggal Cetak
   doc.setFontSize(10)
   doc.setFont("helvetica", "normal")
-  doc.text(`Periode: ${dateRange || "Semua Data"}`, 14, 30) // 🔹 pakai dateRange
+  doc.text(
+    `Periode: ${getMonthName(dateRange) || "Semua Data"}`,
+    14,
+    30
+  )
   doc.text(
     `Dicetak pada: ${new Date().toLocaleDateString("id-ID", {
       day: "numeric",
@@ -112,62 +284,54 @@ export function exportToPDF(
     { align: "right" }
   )
 
-  // Data untuk tabel
+  const pageWidth = doc.internal.pageSize.getWidth() - 20
+
+  // Data
   const tableData = reports.map((r, idx) => [
     idx + 1,
     new Date(r.tanggal).toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
+      weekday: "long", day: "numeric", month: "short", year: "numeric",
     }),
-    Array.isArray(r.petugas) ? r.petugas.join("/") : r.petugas,
+    r.petugas.join("/"),
     r.kualitas_video || "-",
     r.kualitas_audio || "-",
     `${r.jam_mulai}-${r.jam_selesai}`,
     r.program || "-",
     r.kendala || "Siaran lancar",
     r.penanganan || "-",
-    r.keterangan || "",
+    r.keterangan || "-",
   ])
 
-  // Tabel
   autoTable(doc, {
+    startY: 40,
+    theme: "grid",
+    tableWidth: pageWidth,
+    styles: { fontSize: 8, halign: "center", valign: "middle" },
+    headStyles: { fillColor: [25, 45, 116], textColor: 255 },
     head: [
       [
-        "NO",
-        "Tanggal/Hari",
-        "Petugas TD",
-        { content: "Kualitas Siaran", colSpan: 2, styles: { halign: "center" } },
-        "Jam Siaran",
-        "Program Siaran",
-        { content: "Kendala Siaran", colSpan: 2, styles: { halign: "center" } },
-        "Keterangan",
+        { content: "NO", rowSpan: 2 },
+        { content: "Tanggal/Hari", rowSpan: 2 },
+        { content: "Petugas TD", rowSpan: 2 },
+        { content: "Kualitas Siaran", colSpan: 2 },
+        { content: "Jam Siaran", rowSpan: 2 },
+        { content: "Program Siaran", rowSpan: 2 },
+        { content: "Kendala Siaran", colSpan: 2 },
+        { content: "Keterangan", rowSpan: 2 },
       ],
-      ["", "", "", "Video", "Audio", "", "", "Masalah", "Penanganan", ""],
+      [
+        { content: "Video" },
+        { content: "Audio" },
+        { content: "Masalah" },
+        { content: "Penanganan" },
+      ],
     ],
     body: tableData,
-    startY: 40,
-    styles: { fontSize: 8 },
-    theme: "grid",
   })
 
-  // Tanda tangan
-  const finalY = (doc as any).lastAutoTable.finalY + 20
-  doc.text("Mengetahui,", 14, finalY)
-  doc.text("Petugas TD,", doc.internal.pageSize.getWidth() - 60, finalY)
+  const finalY = (doc as any).lastAutoTable.finalY
+  addSignatureSection(doc, currentUser, kepalaName, kepalaNIP, finalY + 20, pageWidth)
 
-  doc.text(kepalaName, 14, finalY + 30)
-  doc.text(`NIP. ${kepalaNIP}`, 14, finalY + 35)
-
-  if (currentUser) {
-    doc.text(currentUser.name, doc.internal.pageSize.getWidth() - 60, finalY + 30)
-    if (currentUser.nip) {
-      doc.text(`NIP. ${currentUser.nip}`, doc.internal.pageSize.getWidth() - 60, finalY + 35)
-    }
-  }
-
-  // Save file
   const currentDate = new Date().toISOString().split("T")[0]
   doc.save(`${filename}-${currentDate}.pdf`)
 }
@@ -187,7 +351,7 @@ function addSignatureSection(
   const userNip = currentUser?.nip || "________________"
   const currentDate = new Date().toLocaleDateString("id-ID", {
     day: "numeric",
-    month: "long",
+    month: "long", 
     year: "numeric"
   })
 
@@ -196,7 +360,7 @@ function addSignatureSection(
 
   // KIRI: Ketua Tim Produksi dan Penyiaran
   doc.text("Ketua Tim Produksi dan Penyiaran,", 30, startY)
-
+  
   // KANAN: Tanggal dan Pengarah Teknik
   const rightX = pageWidth - 80
   doc.text(`Mataram, ${currentDate}`, rightX, startY)
@@ -204,7 +368,7 @@ function addSignatureSection(
 
   // Tambahkan jarak kosong untuk tanda tangan (4 baris @ 7mm spacing)
   const signatureSpacing = 28 // 4 baris x 7mm = 28mm
-
+  
   // KIRI: Nama dan NIP Ketua (setelah jarak kosong)
   doc.text(kepalaName, 30, startY + signatureSpacing)
   doc.text(`NIP. ${kepalaNIP}`, 30, startY + signatureSpacing + 7)
