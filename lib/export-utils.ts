@@ -16,11 +16,9 @@ export const exportToExcel = (reports: any[], options: ExportOptions) => {
   const wb = XLSX.utils.book_new()
   const data: any[] = []
 
-  // Judul
   data.push(["LAPORAN TD PENYIARAN"])
   data.push([])
 
-  // Header utama + sub-header
   const header1 = [
     "NO",
     "Tanggal/Hari",
@@ -238,9 +236,6 @@ ws["!merges"] = [
   XLSX.writeFile(wb, `Laporan_TD_${options.dateRange || "Semua"}.xlsx`)
 }
 
-// =============================
-// EXPORT TO PDF
-// =============================
 export function exportToPDF(
   reports: BroadcastReport[],
   options: ExportOptions = {}
@@ -336,9 +331,6 @@ export function exportToPDF(
   doc.save(`${filename}-${currentDate}.pdf`)
 }
 
-// =============================
-// SIGNATURE SECTION (PDF) - Updated with proper spacing
-// =============================
 function addSignatureSection(
   doc: jsPDF,
   currentUser: User | null,
@@ -358,22 +350,17 @@ function addSignatureSection(
   doc.setFontSize(10)
   doc.setFont("helvetica", "normal")
 
-  // KIRI: Ketua Tim Produksi dan Penyiaran
   doc.text("Ketua Tim Produksi dan Penyiaran,", 30, startY)
   
-  // KANAN: Tanggal dan Pengarah Teknik
   const rightX = pageWidth - 80
   doc.text(`Mataram, ${currentDate}`, rightX, startY)
   doc.text("Pengarah Teknik,", rightX, startY + 7)
 
-  // Tambahkan jarak kosong untuk tanda tangan (4 baris @ 7mm spacing)
-  const signatureSpacing = 28 // 4 baris x 7mm = 28mm
+  const signatureSpacing = 28
   
-  // KIRI: Nama dan NIP Ketua (setelah jarak kosong)
   doc.text(kepalaName, 30, startY + signatureSpacing)
   doc.text(`NIP. ${kepalaNIP}`, 30, startY + signatureSpacing + 7)
 
-  // KANAN: Nama dan NIP Pengarah Teknik (setelah jarak kosong)
   doc.text(userName, rightX, startY + signatureSpacing)
   doc.text(`NIP. ${userNip}`, rightX, startY + signatureSpacing + 7)
 }
